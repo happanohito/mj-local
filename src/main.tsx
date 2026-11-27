@@ -40,7 +40,7 @@ function Melds({ melds, seat }: { melds: Meld[]; seat: number }) {
     const tiles = meld.tiles.filter(tile => tile !== meld.called).sort((a, b) => a - b);
     if (meld.called !== undefined && meld.from !== undefined) {
       const source = (meld.from - seat + 4) % 4;
-      tiles.splice(source === 3 ? 0 : source === 2 ? 1 : tiles.length, 0, meld.called);
+      tiles.splice(source === 1 ? 0 : source === 2 ? 1 : tiles.length, 0, meld.called);
     }
     const label = { chi: 'チー', pon: 'ポン', kan: '大明槓', ankan: '暗槓', kakan: '加槓' }[meld.type];
     return <div className="meld" key={i} title={label + (meld.from !== undefined ? ' · ' + seatName(meld.from) + 'の打牌' : '')}>
@@ -67,7 +67,7 @@ function Title({ saved, resume, start }: { saved?: Game; resume: () => void; sta
   </main>;
 }
 
-const positions = ['south', 'east', 'north', 'west'];
+const positions = ['south', 'west', 'north', 'east'];
 
 function ScoreCard({ seat, data, dealer, active }: {
   seat: number; data: View['seats'][number]; dealer: boolean; active: boolean;
