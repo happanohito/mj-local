@@ -1,0 +1,37 @@
+name: mj
+
+services:
+  web:
+    build:
+      context: .
+      target: development
+    environment:
+      MJ_HOST: ${MJ_HOST:-localhost}
+      MJ_BIND_HOST: 0.0.0.0
+      MJ_PORT: ${MJ_PORT:-4173}
+      MJ_BASE_PATH: ${MJ_BASE_PATH:-/}
+    ports:
+      - "${MJ_PUBLISH_IP:-127.0.0.1}:${MJ_PORT:-4173}:${MJ_PORT:-4173}"
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - .git/
+            - .agents/
+            - .aws/
+            - .codex/
+            - .env*
+            - node_modules/
+            - dist/
+            - package.json
+            - package-lock.json
+            - Dockerfile
+            - compose.yaml
+        - action: rebuild
+          path: package.json
+        - action: rebuild
+          path: package-lock.json
+        - action: rebuild
+          path: Dockerfile

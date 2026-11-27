@@ -1,0 +1,18 @@
+name: mj-devcontainer
+
+services:
+  web:
+    init: true
+    ports: !reset []
+    command:
+      - sh
+      - -ec
+      - |
+        npm ci --prefer-offline --no-audit --no-fund
+        exec npm run dev
+    volumes:
+      - .:/app
+      - devcontainer_node_modules:/app/node_modules
+
+volumes:
+  devcontainer_node_modules:

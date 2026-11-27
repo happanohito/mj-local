@@ -1,0 +1,23 @@
+{
+  "name": "ローカル麻雀",
+  "dockerComposeFile": ["../compose.yaml", "compose.yaml"],
+  "service": "web",
+  "workspaceFolder": "/app",
+  "remoteUser": "node",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "openai.chatgpt",
+        "eamodio.gitlens",
+        "mhutchie.git-graph"
+      ]
+    }
+  },
+  "forwardPorts": [4173],
+  "portsAttributes": {
+    "4173": {
+      "label": "ローカル麻雀 (Vite)"
+    }
+  }
+}
