@@ -217,6 +217,30 @@ function checkGame(game) {
   assert.equal(new Set(physical).size, 136);
 }
 
+test('CPUの手番を表示する間は打牌せず、再開後も1手番ずつ進む', () => {
+  const random = randomFrom(271828);
+  let first = true;
+  const game = startGame(() => {
+    if (!first) return random();
+    first = false;
+    return 0.375;
+  });
+  const saves = [];
+  const persist = state => saves.push(roundTrip(state));
+  const waiting = advance(game, persist, undefined, 'pause');
+  assert.equal(viewOf(waiting).turn, 1);
+  assert.equal(viewOf(waiting).seats[1].river.length, 0);
+  assert.equal(saves.length, 0);
+
+  let stepped = advance(roundTrip(waiting), persist, undefined, 'step');
+  assert.equal(stepped.players[1].river.length, 1);
+  assert.equal(stepped.players[2].river.length, 0);
+  assert.equal(stepped.players[3].river.length, 0);
+  assert.deepEqual(saves.at(-1), roundTrip(stepped));
+  while (viewOf(stepped).turn > 0) stepped = advance(stepped, persist, undefined, 'step');
+  assert.deepEqual(stepped, advance(game, noop));
+});
+
 test('4席を起家にして東風戦を完走し、毎操作で牌と点数が保存される', () => {
   for (let dealer = 0; dealer < 4; dealer++) {
     const random = randomFrom(17157 * (dealer + 1));

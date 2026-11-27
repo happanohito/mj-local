@@ -1,4 +1,4 @@
-import { useState, type DragEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type DragEvent, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { actionKey, advance, nextRound, SEATS, startGame, viewOf, type Game, type Standing } from './game.ts';
 import { isRed, kind, TILE_NAMES, tileName, type Action, type Meld, type Tile } from './rules.ts';
@@ -6,6 +6,7 @@ import '@fontsource-variable/noto-sans-jp';
 import './style.css';
 
 const SAVE_KEY = 'local-mahjong.game';
+const CPU_TURN_DELAY_MS = 750;
 const seatName = (seat: number) => ['あなた', 'CPU 1', 'CPU 2', 'CPU 3'][seat];
 const number = (points: number) => points.toLocaleString('ja-JP');
 type View = ReturnType<typeof viewOf>;
@@ -73,8 +74,10 @@ function Title({ saved, resume, start }: { saved?: Game; resume: () => void; sta
 
 const positions = ['south', 'east', 'north', 'west'];
 
-function ScoreCard({ seat, data, dealer }: { seat: number; data: View['seats'][number]; dealer: boolean }) {
-  return <div className="seat-info">
+function ScoreCard({ seat, data, dealer, active }: {
+  seat: number; data: View['seats'][number]; dealer: boolean; active: boolean;
+}) {
+  return <div className={'seat-info' + (active ? ' active-seat' : '')} aria-current={active ? 'true' : undefined}>
     <span className={'wind' + (dealer ? ' dealer' : '')} title={dealer ? '親' : undefined}>{TILE_NAMES[data.wind]}</span>
     <span className="seat-identity"><strong>{seatName(seat)}</strong>{data.cpu && <small>{data.cpu}</small>}</span>
     <strong className="points">{number(data.points)}</strong>
@@ -126,14 +129,15 @@ function Table({ view, play }: { view: View; play: (action: Action) => void }) {
   }
 
   const actionTypes = [...new Set(view.options.map(action => action.type))].filter(type => type !== 'discard');
+  const turnLabel = view.turn === undefined ? 'あなたの選択' : seatName(view.turn) + 'の手番';
   const message = riichi ? 'リーチ宣言牌を選んでください'
     : candidate ? '使う牌の組み合わせを選んでください'
     : view.claim ? seatName(view.claim.from) + (view.claim.mode === 'kakan' ? 'が加槓' : 'の打牌')
-    : '牌を2回クリック、または河へドラッグ';
+    : view.turn === 0 ? '牌を2回クリック、または河へドラッグ' : '';
   return <main className="game">
     <div className="table">
       {SEATS.filter(seat => seat !== 0).map(seat => <section className={'opponent ' + positions[seat]} key={seat}>
-        <ScoreCard seat={seat} data={view.seats[seat]} dealer={view.dealer === seat} />
+        <ScoreCard seat={seat} data={view.seats[seat]} dealer={view.dealer === seat} active={view.turn === seat} />
         <div className="opponent-hand" aria-label={'手牌 ' + view.seats[seat].hidden + '枚'}>
           {Array.from({ length: view.seats[seat].hidden }, (_, i) => <span className="tile back" key={i} />)}
         </div>
@@ -141,6 +145,7 @@ function Table({ view, play }: { view: View; play: (action: Action) => void }) {
       </section>)}
       {SEATS.map(seat => <River key={seat} seat={seat} view={view} dragging={dragging !== undefined} drop={drop} />)}
       <section className="tracker" aria-label="局の情報">
+        <div className="turn-label" role="status">{turnLabel}</div>
         <div className="round">東 <strong>{view.round}</strong> 局</div>
         <div className="counters"><span>本場 <b>{view.honba}</b></span><span>供託 <b>{view.sticks}</b></span><span>残り <b>{view.remaining}</b></span></div>
         <div className="indicators"><span>ドラ表示</span>{view.indicators.map(tile => <TileDisplay key={tile} tile={tile} />)}</div>
@@ -187,7 +192,7 @@ function Table({ view, play }: { view: View; play: (action: Action) => void }) {
             onDragEnd={() => setDragging(undefined)}><TileFace tile={tile} /></button>;
         })}</div>
         <div className="player-meta">
-          <ScoreCard seat={0} data={view.seats[0]} dealer={view.dealer === 0} />
+          <ScoreCard seat={0} data={view.seats[0]} dealer={view.dealer === 0} active={view.turn === 0} />
           <Melds melds={view.seats[0].melds} seat={0} />
         </div>
       </section>
@@ -250,16 +255,21 @@ function App() {
   const [final, setFinal] = useState<Standing[]>();
   const [confirm, setConfirm] = useState<Confirm>();
   const [storageError, setStorageError] = useState(false);
-  const [revision, setRevision] = useState(0);
 
-  function persist(state: Game) {
+  const persist = useCallback((state: Game) => {
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(state));
       setStorageError(false);
     } catch {
       setStorageError(true);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (confirm || game?.phase.type !== 'turn' || game.phase.seat === game.human) return;
+    const timer = window.setTimeout(() => setGame(advance(game, persist, undefined, 'step')), CPU_TURN_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [confirm, game, persist]);
 
   function clear() {
     try {
@@ -273,8 +283,7 @@ function App() {
 
   function show(state: Game, initial = false, action?: Action) {
     if (initial) persist(state);
-    setGame(advance(state, persist, action));
-    setRevision(value => value + 1);
+    setGame(advance(state, persist, action, 'pause'));
   }
 
   function accept() {
@@ -299,7 +308,7 @@ function App() {
         setGame(undefined);
         clear();
       } else show(nextRound(game), true);
-    }} /> : <Table key={revision} view={view} play={action => show(game, false, action)} />)
+    }} /> : <Table view={view} play={action => show(game, false, action)} />)
       : final ? <Final standings={final} back={() => setFinal(undefined)} />
         : <Title saved={saved} resume={() => { if (saved) show(saved); }} start={() => saved ? setConfirm('new') : show(startGame(), true)} />}
     {confirm && <Confirmation title={titles[confirm]} close={() => setConfirm(undefined)} accept={accept}>

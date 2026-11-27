@@ -87,6 +87,7 @@ nav { display: flex; gap: 8px; }
 .wind { border-radius: 5px; background: #ffffff19; display: grid; place-items: center; width: 24px; height: 26px; font-weight: 800; }
 .wind.dealer { background: var(--gold); color: var(--gold-ink); }
 .seat-identity { display: flex; flex-direction: column; font-size: .82rem; }
+.seat-info.active-seat { border-color: var(--gold); background: #244b3a; box-shadow: 0 0 0 2px #f1cc8930; }
 .seat-identity small { color: var(--muted); font-size: .68rem; }
 .points { font-variant-numeric: tabular-nums; }
 .riichi-mark { font-size: .7rem; color: #ffdfab; border-bottom: 2px solid #ed816b; }
@@ -128,6 +129,7 @@ nav { display: flex; gap: 8px; }
   padding: 8px 12px; background: #142d24; border: 1px solid #6a8b77; border-radius: 12px; }
 .round { color: var(--gold); font-size: 21px; line-height: 1.1; }
 .round strong { font-size: 29px; }
+.turn-label { margin-bottom: 4px; color: var(--ink); font-size: .85rem; font-weight: 750; }
 .counters { display: flex; justify-content: center; gap: 10px; margin: 5px 0; color: var(--muted); font-size: .76rem; }
 .counters b { color: var(--ink); }
 .indicators { display: flex; align-items: center; justify-content: center; gap: 4px; color: var(--muted); font-size: .72rem;

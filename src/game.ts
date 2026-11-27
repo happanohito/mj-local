@@ -457,14 +457,17 @@ function abort(game: Game, label: string) {
   finish(game, { kind: 'abort', label, winners: [], tenpai: [], nagashi: [], transfers: [], repeat: true });
 }
 
-export function advance(game: Game, persist: (state: Game) => void, requested?: Action): Game {
+export function advance(game: Game, persist: (state: Game) => void, requested?: Action,
+  cpuPacing?: 'pause' | 'step'): Game {
   const current = structuredClone(game);
   let first = true;
   while (current.phase.type !== 'result') {
     const seat = actor(current);
     if (seat === undefined) throw new Error('操作する席がありません。');
-    const options = optionsFor(current, seat);
     const { phase } = current;
+    // A timed step plays the current CPU turn and stops before the next one.
+    if (cpuPacing && phase.type === 'turn' && seat !== current.human && !(cpuPacing === 'step' && first)) break;
+    const options = optionsFor(current, seat);
     let action: Action;
     if (seat === current.human) {
       if (first && requested) {
@@ -498,6 +501,7 @@ export function viewOf(game: Game) {
   const myTurn = actor(game) === human;
   return {
     round: game.round, honba: game.honba, sticks: game.sticks, dealer: game.dealer,
+    turn: phase.type === 'turn' ? phase.seat : undefined,
     indicators: indicatorsOf(game), remaining: game.wall.length,
     seats: game.players.map((player, seat) => ({
       cpu: game.cpu[seat], points: game.points[seat], hidden: player.hand.length, river: player.river, melds: player.melds,
