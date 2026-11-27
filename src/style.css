@@ -93,18 +93,28 @@ nav { display: flex; gap: 8px; }
 .riichi-mark { font-size: .7rem; color: #ffdfab; border-bottom: 2px solid #ed816b; }
 .tile {
   --face: #f5eddc;
+  --tile-face-paper: #faf2e2;
+  --tile-red: #a42625;
+  --tile-green: #146044;
+  --tile-blue: #183f65;
   flex: none;
   display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
   width: var(--tile-w, 25px); height: var(--tile-h, 32px);
   border: 1px solid #d8c9aa; border-radius: 5px;
   background: linear-gradient(150deg, #fffaf0, var(--face));
   box-shadow: 0 2px 0 #a39775, 0 3px 3px #0b20199c;
-  color: #253628; padding: 0; line-height: 1; font-weight: 800;
+  color: #27271e; padding: 0; line-height: 1; font-weight: 800;
   font-size: var(--tile-font, 15px);
 }
-.tile small { margin-top: 1px; font-size: .6em; }
-.tile.red { color: #a42625; }
-.tile.green { color: #17673e; }
+.man-face { display: grid; justify-items: center; gap: .04em; font-size: .94em; line-height: .92; pointer-events: none; }
+.man-face b:last-child { color: var(--tile-red); font-size: .76em; }
+.tile-emblem { display: block; width: 90%; height: 90%; pointer-events: none; }
+.pin-face { color: var(--tile-blue); }
+.sou-face { color: var(--tile-green); }
+.mark-green, .tile.green { color: var(--tile-green); }
+.mark-red, .tile.red { color: var(--tile-red); }
+.tile.red-five { color: var(--tile-red); border-color: #c57768; }
+.red-five .tile-emblem, .red-five .tile-emblem g { color: var(--tile-red); }
 .tile.sideways { transform: rotate(-90deg) scale(.81); }
 .tile.back { border-color: #78a493; background: linear-gradient(130deg, #498575, #326d61); box-shadow: 0 2px 0 #1c463b; }
 .tile .white-dragon { width: 68%; height: 64%; border: 1px solid #5980a0; border-radius: 2px; }

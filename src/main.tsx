@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type DragEvent, type ReactNode } from
 import { createRoot } from 'react-dom/client';
 import { actionKey, advance, nextRound, SEATS, startGame, viewOf, type Game, type Standing } from './game.ts';
 import { isRed, kind, TILE_NAMES, tileName, type Action, type Meld, type Tile } from './rules.ts';
+import { TileFace } from './tile-face.tsx';
 import '@fontsource-variable/noto-sans-jp';
 import './style.css';
 
@@ -24,18 +25,12 @@ function readSave(): Game | undefined {
   }
 }
 
-function TileFace({ tile }: { tile: Tile }) {
-  const type = kind(tile);
-  const name = TILE_NAMES[type];
-  return type < 27
-    ? <><b>{name[0]}</b><small>{name[1]}</small></>
-    : <b className={type === 31 ? 'white-dragon' : ''}>{type === 31 ? '' : name}</b>;
-}
-
-const tileClass = (tile: Tile) => 'tile' + (isRed(tile) || kind(tile) === 33 ? ' red' : kind(tile) === 32 ? ' green' : '');
+const tileClass = (tile: Tile) => 'tile' + (isRed(tile) ? ' red-five'
+  : kind(tile) === 33 ? ' red' : kind(tile) === 32 ? ' green' : '');
 
 function TileDisplay({ tile, highlight = false }: { tile: Tile; highlight?: boolean }) {
-  return <span className={tileClass(tile) + (highlight ? ' sideways' : '')} title={tileName(tile)} aria-label={tileName(tile)}>
+  return <span className={tileClass(tile) + (highlight ? ' sideways' : '')} title={tileName(tile)}
+    role="img" aria-label={tileName(tile)}>
     <TileFace tile={tile} />
   </span>;
 }
