@@ -3,7 +3,7 @@
 FROM node:24-bookworm-slim AS development
 WORKDIR /app
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates git openssl \
+    && apt-get install -y --no-install-recommends ca-certificates git openssl openssh-client \
     && rm -rf /var/lib/apt/lists/* \
     && chown node:node /app
 USER node
